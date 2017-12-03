@@ -42,6 +42,10 @@ func minMaxLineChecksum(values []int) (int, error) {
 	return max - min, nil
 }
 
+func evenlyDivisibleLineChecksum(values []int) (int, error) {
+	return 0, nil
+}
+
 type LineChecksum func([]int) (int, error)
 
 func computeChecksum(r *bufio.Reader, lineFn LineChecksum) (int, error) {
@@ -79,20 +83,31 @@ func computeChecksum(r *bufio.Reader, lineFn LineChecksum) (int, error) {
 }
 
 func main() {
-	flag.Parse() // print an error if someone passes an option
+	var checksumFuncId int
 
-	if len(os.Args) != 2 {
-		log.Fatalf("Usage:\n    %s <problem_filename>", os.Args[0])
+	flag.IntVar(&checksumFuncId, "f", 1, "Checksum function id (1 or 2)")
+	flag.Parse()
+
+	if flag.NArg() != 1 || checksumFuncId < 1 || checksumFuncId > 2 {
+		log.Fatalf("Usage:\n    %s [options] <problem_filename>", os.Args[0])
 	}
 
-	file, err := os.Open(os.Args[1])
+	file, err := os.Open(flag.Arg(0))
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
+	var checksumFunc LineChecksum
+
+	if checksumFuncId == 1 {
+		checksumFunc = minMaxLineChecksum
+	} else {
+		checksumFunc = evenlyDivisibleLineChecksum
+	}
+
 	reader := bufio.NewReader(file)
-	checksum, err := computeChecksum(reader, minMaxLineChecksum)
+	checksum, err := computeChecksum(reader, checksumFunc)
 	if err != nil {
 		log.Fatal(err)
 	}
