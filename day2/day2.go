@@ -26,7 +26,7 @@ func parseSpreadsheetLine(line string, sep string) ([]int, error) {
 	return values, err
 }
 
-func minMaxLineChecksum(values []int) (int, error) {
+func minMaxLineChecksum(values []int) int {
 	var min, max int
 
 	for i, curr := range values {
@@ -39,21 +39,21 @@ func minMaxLineChecksum(values []int) (int, error) {
 		}
 	}
 
-	return max - min, nil
+	return max - min
 }
 
-func evenlyDivisibleLineChecksum(values []int) (int, error) {
-	return 0, nil
+func evenlyDivisibleLineChecksum(values []int) int {
+	return 0
 }
 
-type LineChecksum func([]int) (int, error)
+type LineChecksum func([]int) int
 
 func computeChecksum(r *bufio.Reader, lineFn LineChecksum) (int, error) {
 	var line string
 	var sum, partialSum int
 	var values []int
 
-	var readError, parseError, checksumError error
+	var readError, parseError error
 
 	for {
 		line, readError = r.ReadString('\n')
@@ -67,10 +67,7 @@ func computeChecksum(r *bufio.Reader, lineFn LineChecksum) (int, error) {
 			return sum, readError
 		}
 
-		partialSum, checksumError = lineFn(values)
-		if checksumError != nil {
-			return sum, checksumError
-		}
+		sum += lineFn(values)
 
 		sum += partialSum
 
