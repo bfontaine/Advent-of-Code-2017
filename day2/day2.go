@@ -11,17 +11,25 @@ import (
 	"strings"
 )
 
-func lineChecksum(line string, sep string) (int, error) {
-	var min, max, curr int
+func parseSpreadsheetLine(line string, sep string) ([]int, error) {
 	var err error
 
-	cells := strings.Split(line, sep)
+	cells := strings.Split(strings.TrimRight(line, "\n"), sep)
 
+	values := make([]int, len(cells))
 	for i, cell := range cells {
-		curr, err = strconv.Atoi(cell)
+		values[i], err = strconv.Atoi(cell)
 		if err != nil {
-			return 0, err
+			break
 		}
+	}
+	return values, err
+}
+
+func minMaxLineChecksum(values []int) (int, error) {
+	var min, max int
+
+	for i, curr := range values {
 		if i == 0 || curr < min {
 			min = curr
 		}
@@ -34,29 +42,40 @@ func lineChecksum(line string, sep string) (int, error) {
 	return max - min, nil
 }
 
-func computeChecksum(r *bufio.Reader) (sum int, err error) {
+type LineChecksum func([]int) (int, error)
+
+func computeChecksum(r *bufio.Reader, lineFn LineChecksum) (int, error) {
 	var line string
-	var partialSum int
-	var err2 error
+	var sum, partialSum int
+	var values []int
+
+	var readError, parseError, checksumError error
 
 	for {
-		line, err = r.ReadString('\n')
+		line, readError = r.ReadString('\n')
+		values, parseError = parseSpreadsheetLine(line, "\t")
 
-		partialSum, err2 = lineChecksum(strings.TrimRight(line, "\n"), "\t")
-		if err2 != nil {
-			return sum, err2
+		if parseError != nil {
+			return sum, parseError
+		}
+
+		if readError != nil && readError != io.EOF {
+			return sum, readError
+		}
+
+		partialSum, checksumError = lineFn(values)
+		if checksumError != nil {
+			return sum, checksumError
 		}
 
 		sum += partialSum
 
-		if err != nil {
+		if readError == io.EOF {
+			readError = nil
 			break
 		}
 	}
-	if err == io.EOF {
-		err = nil
-	}
-	return
+	return sum, readError
 }
 
 func main() {
@@ -73,7 +92,7 @@ func main() {
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
-	checksum, err := computeChecksum(reader)
+	checksum, err := computeChecksum(reader, minMaxLineChecksum)
 	if err != nil {
 		log.Fatal(err)
 	}
