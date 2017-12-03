@@ -1,6 +1,7 @@
 # Day 1
 
 Problem: https://adventofcode.com/2017/day/1
+
 Language: C
 
 ## Compile
