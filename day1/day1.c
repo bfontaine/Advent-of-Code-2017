@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 const char ASCII_ZERO = '0';
 
-int solve_captcha(char *captcha) {
-        int size = strlen(captcha),
-            sum = 0,
+int solve_captcha(char *captcha, int size, int step) {
+        int sum = 0,
             i, j, c1, c2;
 
         for (i=0; i<size; i++) {
-                j = (i+1) % size;
+                j = (i+step) % size;
                 c1 = captcha[i];
                 c2 = captcha[j];
 
@@ -21,6 +21,17 @@ int solve_captcha(char *captcha) {
         return sum;
 }
 
+int solve_captcha_part_one(char *captcha) {
+        return solve_captcha(captcha, strlen(captcha), 1);
+}
+
+int solve_captcha_part_two(char *captcha) {
+        int size = strlen(captcha);
+
+        assert(size % 2 == 0);
+        return solve_captcha(captcha, size, size/2);
+}
+
 int main(int argc, char **argv) {
         int solution;
 
@@ -29,8 +40,8 @@ int main(int argc, char **argv) {
                 return 1;
         }
 
-        solution = solve_captcha(argv[1]);
-        printf("Solution: %d\n", solution);
+        printf("Solution 1: %d\n", solve_captcha_part_one(argv[1]));
+        printf("Solution 2: %d\n", solve_captcha_part_two(argv[1]));
 
         return 1;
 }
