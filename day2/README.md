@@ -12,4 +12,6 @@ Language: Go
 
 First, copy the input in `problem.txt`.
 
-    ./day2 problem.txt
+    ./day2 [-f N] problem.txt
+
+`N` is the part number: `1` (default) or `2`.

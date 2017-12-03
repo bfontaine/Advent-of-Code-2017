@@ -43,6 +43,15 @@ func minMaxLineChecksum(values []int) int {
 }
 
 func evenlyDivisibleLineChecksum(values []int) int {
+	for i, v1 := range values {
+		for _, v2 := range values[i+1:] {
+			if v1%v2 == 0 {
+				return v1 / v2
+			} else if v2%v1 == 0 {
+				return v2 / v1
+			}
+		}
+	}
 	return 0
 }
 
